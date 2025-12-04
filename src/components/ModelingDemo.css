@@ -1,0 +1,71 @@
+/* Modeling Demo Section */
+.section-modeling-demo {
+  position: relative;
+  padding: 4rem 5vw;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  margin-top: 0;
+  background: #0a0e27;
+  border-top: 1px solid rgba(79, 213, 255, 0.2);
+  border-bottom: 1px solid rgba(79, 213, 255, 0.2);
+}
+
+@media (max-width: 1024px) {
+  .section-modeling-demo {
+    padding: 3rem 4vw;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-modeling-demo {
+    padding: 2.5rem 3vw;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-modeling-demo {
+    padding: 2rem 1.5rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
+
+.modeling-demo-wrapper {
+  position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+  z-index: 2;
+}
+
+.modeling-demo-viewport {
+  position: relative;
+  width: 100%;
+  height: 700px;
+  margin-top: 3rem;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(10, 14, 40, 0.95), rgba(15, 20, 45, 0.95));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 1024px) {
+  .modeling-demo-viewport {
+    height: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  .modeling-demo-viewport {
+    height: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modeling-demo-viewport {
+    height: 400px;
+  }
+}
