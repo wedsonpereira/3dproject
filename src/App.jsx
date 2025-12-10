@@ -9,6 +9,7 @@ import FireSimulation from './components/FireSimulation.jsx'
 import SmokeSimulation from './components/SmokeSimulation.jsx'
 import WaterSimulation from './components/WaterSimulation.jsx'
 import RobotDemo from './components/RobotDemo.jsx'
+import LightingDemo from './components/LightingDemo.jsx'
 import './App.css'
 import './components/AnimationVideos.css'
 import './components/ModelingDemo.css'
@@ -590,7 +591,9 @@ function App() {
                     preload="metadata"
                     className="sim-video"
                   >
-                    <source src="/src/assets/videos/6478423_Closeup_View_3840x2160.mp4" type="video/mp4" />
+                    {/* Water video from Vecteezy - download and place in assets/videos folder */}
+                    {/* Source: https://www.vecteezy.com/video/1802194-water-pouring-and-splashing-in-ultra-slow-motion-1-500-fps-on-a-reflective-surface-water-pours-130 */}
+                    <source src="/src/assets/videos/water-pouring-splash.mp4" type="video/mp4" />
                   </video>
                 </div>
                 <div className="sim-card-content-new">
@@ -723,73 +726,47 @@ function App() {
           </div>
         </section>
 
-        <section id="lighting" className="topic-section section-lighting-gsap" aria-labelledby="section-lighting-title">
-          <div className="lighting-container-gsap">
-            <div className="lighting-split-gsap">
-              <div className="lighting-content-gsap">
-                <div className="lighting-badge-gsap">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="5" />
-                    <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" />
-                  </svg>
-                  <span>Lighting & Rendering</span>
-                </div>
-                <h2 id="section-lighting-title" className="lighting-title-gsap">
-                  Professional Lighting
-                </h2>
-                <p className="lighting-description-gsap">
-                  Sculpt light, shadow, and atmosphere with physically-based rendering. HDRIs, area lights, and volumetrics for both offline and real-time pipelines.
-                </p>
+        <section id="lighting" className="lighting-section-new" aria-labelledby="section-lighting-title">
+          <div className="lighting-header-new">
+            <div className="lighting-badge-new">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="5" />
+                <path d="M12 1v3m0 16v3M4.22 4.22l2.12 2.12m11.32 11.32l2.12 2.12M1 12h3m16 0h3M4.22 19.78l2.12-2.12m11.32-11.32l2.12-2.12" />
+              </svg>
+              <span>Lighting Studio</span>
+            </div>
+            <h2 id="section-lighting-title" className="lighting-title-new">
+              Professional Lighting
+            </h2>
+            <p className="lighting-subtitle-new">
+              Master the art of three-point lighting. Adjust key, fill, and rim lights in real-time to sculpt perfect illumination.
+            </p>
+          </div>
 
-                <div className="lighting-techniques-gsap">
-                  <div className="technique-item-gsap">
-                    <div className="technique-icon-gsap">01</div>
-                    <div className="technique-content-gsap">
-                      <h4>Three-Point Lighting</h4>
-                      <p>Key, fill, and rim lights for depth</p>
-                    </div>
-                  </div>
-                  <div className="technique-item-gsap">
-                    <div className="technique-icon-gsap">02</div>
-                    <div className="technique-content-gsap">
-                      <h4>HDRI Environments</h4>
-                      <p>Image-based lighting for realism</p>
-                    </div>
-                  </div>
-                  <div className="technique-item-gsap">
-                    <div className="technique-icon-gsap">03</div>
-                    <div className="technique-content-gsap">
-                      <h4>Volumetric Effects</h4>
-                      <p>God rays and atmospheric fog</p>
-                    </div>
-                  </div>
-                  <div className="technique-item-gsap">
-                    <div className="technique-icon-gsap">04</div>
-                    <div className="technique-content-gsap">
-                      <h4>Global Illumination</h4>
-                      <p>Indirect lighting bounces</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div className="lighting-demo-wrapper-new">
+            <LightingDemo />
+          </div>
 
-              <div className="lighting-visual-gsap">
-                <div className="lighting-stage-gsap">
-                  <div className="light-beam-gsap light-key-gsap"></div>
-                  <div className="light-beam-gsap light-fill-gsap"></div>
-                  <div className="light-beam-gsap light-rim-gsap"></div>
-                  <div className="light-subject-gsap"></div>
-                  <div className="light-particles-gsap">
-                    {Array.from({ length: 30 }).map((_, i) => (
-                      <div key={i} className="light-particle-gsap" style={{
-                        left: `${Math.random() * 100}%`,
-                        animationDelay: `${Math.random() * 3}s`,
-                        animationDuration: `${2 + Math.random() * 2}s`
-                      }}></div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+          <div className="lighting-tips-new">
+            <div className="lighting-tip-card">
+              <div className="tip-icon">💡</div>
+              <h4>Key Light</h4>
+              <p>Your main light source. Position it 45° from the subject for classic portrait lighting.</p>
+            </div>
+            <div className="lighting-tip-card">
+              <div className="tip-icon">🌓</div>
+              <h4>Fill Light</h4>
+              <p>Softens shadows from the key light. Keep it at 50-70% intensity of your key.</p>
+            </div>
+            <div className="lighting-tip-card">
+              <div className="tip-icon">✨</div>
+              <h4>Rim Light</h4>
+              <p>Creates edge separation from the background. Position behind and above the subject.</p>
+            </div>
+            <div className="lighting-tip-card">
+              <div className="tip-icon">🌐</div>
+              <h4>Ambient</h4>
+              <p>Base illumination that prevents pure black shadows. Use sparingly for drama.</p>
             </div>
           </div>
         </section>

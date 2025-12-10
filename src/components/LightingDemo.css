@@ -1,0 +1,214 @@
+.lighting-demo {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+  min-height: 450px;
+}
+
+/* Shared container styles */
+.lighting-demo-container,
+.lighting-controls-container {
+  background: rgba(10, 14, 30, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.container-header {
+  padding: 0.875rem 1.25rem;
+  background: rgba(255, 200, 100, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.container-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ffc864;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.container-hint {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+}
+
+/* Container 1: Demonstration Area */
+.lighting-demo-container {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.lighting-viewport {
+  flex: 1;
+  min-height: 380px;
+  height: 100%;
+  background: linear-gradient(135deg, #0a0a12 0%, #12121f 100%);
+  position: relative;
+}
+
+.lighting-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Container 2: Light Controls */
+.lighting-controls-container {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+}
+
+.controls-content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Light control groups */
+.light-control-group {
+  padding: 0.875rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.2s ease;
+}
+
+.light-control-group:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.light-control-group h4 {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.light-control-group h4::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* Light-specific colors */
+.light-control-group[data-light="key"] h4 { color: #ffdd77; }
+.light-control-group[data-light="key"] h4::before { background: #ffdd77; }
+.light-control-group[data-light="fill"] h4 { color: #4fd5ff; }
+.light-control-group[data-light="fill"] h4::before { background: #4fd5ff; }
+.light-control-group[data-light="rim"] h4 { color: #ff4fb8; }
+.light-control-group[data-light="rim"] h4::before { background: #ff4fb8; }
+.light-control-group[data-light="ambient"] h4 { color: #8b7fff; }
+.light-control-group[data-light="ambient"] h4::before { background: #8b7fff; }
+
+.light-control-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.light-control-group .label-text {
+  min-width: 55px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.light-control-group input[type="range"] {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.light-control-group input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #ffc864;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(255, 200, 100, 0.5);
+  transition: transform 0.15s ease;
+}
+
+.light-control-group input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.light-control-group input[type="color"] {
+  width: 28px;
+  height: 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+}
+
+.light-control-group input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.light-control-group input[type="color"]::-webkit-color-swatch {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.light-control-group .value {
+  min-width: 32px;
+  text-align: right;
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 0.7rem;
+  color: rgba(255, 200, 100, 0.8);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .lighting-demo {
+    flex-direction: column;
+  }
+  
+  .lighting-controls-container {
+    flex: none;
+    max-height: none;
+  }
+  
+  .controls-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 550px) {
+  .controls-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .lighting-viewport {
+    min-height: 300px;
+  }
+}

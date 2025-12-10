@@ -88,11 +88,11 @@ function HeroCubes() {
           varying vec3 vNormal;
           varying vec3 vViewPosition;
           varying vec3 vPosition;
-          varying vec3 vWorldNormal;
+          varying vec3 vObjectNormal;
 
           void main() {
             vNormal = normalize(normalMatrix * normal);
-            vWorldNormal = normalize(mat3(modelMatrix) * normal);
+            vObjectNormal = normal; // Object-space normal - stays fixed relative to cube
             vPosition = position;
             vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
             vViewPosition = -mvPosition.xyz;
@@ -100,97 +100,178 @@ function HeroCubes() {
           }
         `,
         fragmentShader: `
-          uniform float uTime;
-          uniform float uSeed;
-          
           varying vec3 vNormal;
           varying vec3 vViewPosition;
           varying vec3 vPosition;
-          varying vec3 vWorldNormal;
+          varying vec3 vObjectNormal;
+
+          uniform float uSeed;
+          
+          // Hash function for random values
+          float hash(float n) {
+            return fract(sin(n) * 43758.5453);
+          }
+          
+          // S shape SDF function - soft and spread
+          float sShape(vec2 p) {
+            p = p * 2.2; // Scale to fit face (smaller = bigger S)
+            
+            // S is made of two half circles - soft blended
+            // Top half circle (opens left)
+            vec2 p1 = p - vec2(0.0, 0.4);
+            float r1 = 0.4;
+            float d1 = abs(length(p1) - r1) - 0.22; // Very thick stroke
+            // Soft fade instead of hard cutoff
+            float fadeTop = smoothstep(-0.15, 0.05, p1.x);
+            d1 = mix(d1, 1.0, 1.0 - fadeTop);
+            
+            // Bottom half circle (opens right)
+            vec2 p2 = p - vec2(0.0, -0.4);
+            float r2 = 0.4;
+            float d2 = abs(length(p2) - r2) - 0.22; // Very thick stroke
+            // Soft fade instead of hard cutoff
+            float fadeBottom = smoothstep(0.15, -0.05, p2.x);
+            d2 = mix(d2, 1.0, 1.0 - fadeBottom);
+            
+            return min(d1, d2);
+          }
 
           void main() {
             vec3 normal = normalize(vNormal);
-            vec3 worldNormal = normalize(vWorldNormal);
             vec3 viewDir = normalize(vViewPosition);
+            vec3 pos = vPosition;
             
-            // Fresnel - bright at edges
-            float fresnel = pow(1.0 - abs(dot(normal, viewDir)), 2.5);
+            // Fresnel for glass edges
+            float fresnel = pow(1.0 - abs(dot(normal, viewDir)), 3.0);
             
-            float time = uTime * 0.15 + uSeed;
+            // Use OBJECT-SPACE normal to determine face - stays fixed as cube rotates
+            vec3 objNormal = normalize(vObjectNormal);
+            float absX = abs(objNormal.x);
+            float absY = abs(objNormal.y);
+            float absZ = abs(objNormal.z);
             
-            // === FACE COLORS - like reference image ===
-            vec3 cyan = vec3(0.0, 0.85, 0.8);
-            vec3 teal = vec3(0.15, 0.7, 0.65);
-            vec3 magenta = vec3(0.85, 0.2, 0.55);
-            vec3 pink = vec3(0.9, 0.4, 0.55);
-            vec3 purple = vec3(0.45, 0.25, 0.75);
-            vec3 blue = vec3(0.3, 0.4, 0.85);
-            vec3 darkBlue = vec3(0.12, 0.15, 0.35);
+            // Determine which faces show the S (random per cube, 2-3 faces)
+            // Each face gets a random value, show S if value > 0.5
+            float showPosX = step(0.4, hash(uSeed + 10.0));
+            float showNegX = step(0.5, hash(uSeed + 11.0));
+            float showPosY = step(0.5, hash(uSeed + 12.0));
+            float showNegY = step(0.6, hash(uSeed + 13.0));
+            float showPosZ = step(0.4, hash(uSeed + 14.0));
+            float showNegZ = step(0.5, hash(uSeed + 15.0));
             
-            // Determine dominant face direction
-            float absX = abs(worldNormal.x);
-            float absY = abs(worldNormal.y);
-            float absZ = abs(worldNormal.z);
-            float maxAbs = max(absX, max(absY, absZ));
+            // Random position offsets for S on each face (range -0.15 to 0.15)
+            vec2 offsetPosX = vec2(hash(uSeed + 20.0) - 0.5, hash(uSeed + 21.0) - 0.5) * 0.3;
+            vec2 offsetNegX = vec2(hash(uSeed + 22.0) - 0.5, hash(uSeed + 23.0) - 0.5) * 0.3;
+            vec2 offsetPosY = vec2(hash(uSeed + 24.0) - 0.5, hash(uSeed + 25.0) - 0.5) * 0.3;
+            vec2 offsetNegY = vec2(hash(uSeed + 26.0) - 0.5, hash(uSeed + 27.0) - 0.5) * 0.3;
+            vec2 offsetPosZ = vec2(hash(uSeed + 28.0) - 0.5, hash(uSeed + 29.0) - 0.5) * 0.3;
+            vec2 offsetNegZ = vec2(hash(uSeed + 30.0) - 0.5, hash(uSeed + 31.0) - 0.5) * 0.3;
             
-            // === ASSIGN COLOR PER FACE ===
-            vec3 faceColor = vec3(0.0);
+            // Draw S on random faces using object-space position with random offset
+            float sLetter = 0.0;
+            vec2 sUV = vec2(0.0); // Track UV for gradient
             
-            // +Y face (top) - cyan/teal
-            faceColor += cyan * smoothstep(0.6, 1.0, worldNormal.y);
-            // -Y face (bottom) - purple/blue
-            faceColor += purple * smoothstep(0.6, 1.0, -worldNormal.y);
-            // +X face - magenta/pink
-            faceColor += magenta * smoothstep(0.6, 1.0, worldNormal.x);
-            // -X face - blue
-            faceColor += blue * smoothstep(0.6, 1.0, -worldNormal.x);
-            // +Z face - teal/cyan mix
-            faceColor += teal * smoothstep(0.6, 1.0, worldNormal.z);
-            // -Z face - purple/magenta mix
-            faceColor += mix(purple, magenta, 0.5) * smoothstep(0.6, 1.0, -worldNormal.z);
+            // X faces (left/right)
+            if (absX > 0.5) {
+              float showFace = objNormal.x > 0.0 ? showPosX : showNegX;
+              vec2 offset = objNormal.x > 0.0 ? offsetPosX : offsetNegX;
+              if (showFace > 0.5) {
+                vec2 uv = pos.zy * sign(objNormal.x) - offset;
+                float d = sShape(uv);
+                float s = 1.0 - smoothstep(-0.1, 0.35, d); // Very soft edges
+                if (s > sLetter) {
+                  sLetter = s;
+                  sUV = uv;
+                }
+              }
+            }
             
-            // === DARK CENTER ON EACH FACE ===
-            // The center of each face is darker (deep blue/purple tint)
-            float faceCenterDark = pow(maxAbs, 3.0) * 0.5;
-            faceColor = mix(faceColor, darkBlue, faceCenterDark * (1.0 - fresnel));
+            // Y faces (top/bottom)
+            if (absY > 0.5) {
+              float showFace = objNormal.y > 0.0 ? showPosY : showNegY;
+              vec2 offset = objNormal.y > 0.0 ? offsetPosY : offsetNegY;
+              if (showFace > 0.5) {
+                vec2 uv = pos.xz * sign(objNormal.y) - offset;
+                float d = sShape(uv);
+                float s = 1.0 - smoothstep(-0.1, 0.35, d); // Very soft edges
+                if (s > sLetter) {
+                  sLetter = s;
+                  sUV = uv;
+                }
+              }
+            }
             
-            // === BRIGHT EDGES WHERE FACES MEET ===
-            // Edges are where no single normal dominates
-            float edgeBrightness = 1.0 - pow(maxAbs, 1.5);
-            edgeBrightness = smoothstep(0.0, 0.4, edgeBrightness);
+            // Z faces (front/back)
+            if (absZ > 0.5) {
+              float showFace = objNormal.z > 0.0 ? showPosZ : showNegZ;
+              vec2 offset = objNormal.z > 0.0 ? offsetPosZ : offsetNegZ;
+              if (showFace > 0.5) {
+                vec2 uv = pos.xy * sign(objNormal.z) - offset;
+                float d = sShape(uv);
+                float s = 1.0 - smoothstep(-0.1, 0.35, d); // Very soft edges
+                if (s > sLetter) {
+                  sLetter = s;
+                  sUV = uv;
+                }
+              }
+            }
             
-            // Edge color shifts between adjacent face colors
-            vec3 edgeColor = mix(cyan, magenta, sin(time + worldNormal.x * 3.0) * 0.5 + 0.5);
-            edgeColor = mix(edgeColor, pink, sin(time * 0.7 + worldNormal.y * 2.0) * 0.5 + 0.5);
-            faceColor = mix(faceColor, edgeColor * 1.3, edgeBrightness);
+            // Iridescent holographic colors
+            vec3 cyan = vec3(0.0, 0.9, 0.95);
+            vec3 magenta = vec3(0.9, 0.2, 0.8);
+            vec3 pink = vec3(1.0, 0.4, 0.7);
+            vec3 blue = vec3(0.2, 0.3, 1.0);
+            vec3 teal = vec3(0.0, 0.8, 0.7);
             
-            // === FRESNEL EDGE GLOW ===
-            // Outer edges of cube glow bright
-            vec3 fresnelColor = mix(cyan, magenta, sin(time * 0.5 + worldNormal.z) * 0.5 + 0.5);
-            faceColor = mix(faceColor, fresnelColor * 1.2, fresnel * 0.6);
+            // Create iridescent effect based on view angle and position
+            float iridescence = dot(normal, viewDir);
+            float posGradient = (pos.x + pos.y + pos.z) * 0.8;
             
-            // === GLOSSY SPECULAR HIGHLIGHTS ===
+            // Multi-color holographic gradient
+            float t1 = sin(posGradient * 2.0 + iridescence * 3.0) * 0.5 + 0.5;
+            float t2 = cos(posGradient * 1.5 - iridescence * 2.0) * 0.5 + 0.5;
+            float t3 = sin(posGradient * 3.0 + fresnel * 4.0) * 0.5 + 0.5;
+            
+            vec3 iridColor = mix(cyan, magenta, t1);
+            iridColor = mix(iridColor, pink, t2 * 0.5);
+            iridColor = mix(iridColor, blue, t3 * 0.4);
+            iridColor = mix(iridColor, teal, fresnel * 0.6);
+            
+            // S color - use the iridescent gradient
+            float gradientT = smoothstep(-0.4, 0.4, sUV.y + sUV.x * 0.5);
+            vec3 sColor = mix(cyan, magenta, gradientT);
+            sColor = mix(sColor, pink, sin(gradientT * 3.14) * 0.5);
+            
+            // Specular highlights for shine
             vec3 L1 = normalize(vec3(1.5, 2.0, 1.0));
-            vec3 L2 = normalize(vec3(-1.2, 1.0, 1.5));
-            vec3 L3 = normalize(vec3(0.3, -0.8, 1.8));
-            vec3 L4 = normalize(vec3(-0.5, 0.3, -1.0));
+            vec3 L2 = normalize(vec3(-1.0, 1.5, 1.5));
+            vec3 L3 = normalize(vec3(0.5, -0.5, 2.0));
             
-            float spec1 = pow(max(dot(reflect(-L1, normal), viewDir), 0.0), 50.0);
-            float spec2 = pow(max(dot(reflect(-L2, normal), viewDir), 0.0), 35.0);
+            float spec1 = pow(max(dot(reflect(-L1, normal), viewDir), 0.0), 60.0);
+            float spec2 = pow(max(dot(reflect(-L2, normal), viewDir), 0.0), 40.0);
             float spec3 = pow(max(dot(reflect(-L3, normal), viewDir), 0.0), 25.0);
-            float spec4 = pow(max(dot(reflect(-L4, normal), viewDir), 0.0), 20.0);
             
-            vec3 specular = vec3(1.0) * spec1 * 1.3;
-            specular += vec3(0.95, 0.98, 1.0) * spec2 * 0.9;
-            specular += vec3(1.0, 0.96, 0.98) * spec3 * 0.6;
-            specular += vec3(0.98, 1.0, 1.0) * spec4 * 0.4;
+            // Colored specular highlights
+            vec3 specular = cyan * spec1 * 0.8;
+            specular += magenta * spec2 * 0.6;
+            specular += pink * spec3 * 0.5;
+            specular += vec3(1.0) * (spec1 + spec2) * 0.3; // White highlight
             
-            // === COMBINE ===
-            vec3 finalColor = faceColor;
+            // Edge glow with iridescent color
+            float edgeGlow = pow(fresnel, 2.0);
+            vec3 edgeColor = mix(cyan, magenta, fresnel) * edgeGlow * 0.8;
+            
+            // Combine - base iridescent glass
+            vec3 finalColor = iridColor * 0.25;
             finalColor += specular;
+            finalColor += edgeColor;
+            finalColor += iridColor * fresnel * 0.5;
             
-            // Alpha
-            float alpha = 0.85 + fresnel * 0.1 + (spec1 + spec2) * 0.1;
+            // Add S letter with gradient
+            finalColor += sColor * sLetter * 1.2;
+            
+            // Alpha - glass with iridescent glow
+            float alpha = 0.4 + fresnel * 0.5 + (spec1 + spec2) * 0.2 + sLetter * 0.4;
             
             gl_FragColor = vec4(finalColor, alpha);
           }
